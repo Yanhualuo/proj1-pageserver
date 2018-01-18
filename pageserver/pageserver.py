@@ -59,15 +59,6 @@ def serve(sock, func):
         _thread.start_new_thread(func, (clientsocket,))
 
 
-##
-# Starter version only serves cat pictures. In fact, only a
-# particular cat picture.  This one.
-##
-CAT = """
-     ^ ^
-   =(   )=
-"""
-
 # HTTP response codes, as the strings we will actually send.
 # See:  https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 # or    http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
@@ -91,12 +82,27 @@ def respond(sock):
 
     parts = request.split()
     if len(parts) > 1 and parts[0] == "GET":
-        transmit(STATUS_OK, sock)
-        transmit(CAT, sock)
+        if parts[1].endswith(".html") or parts[1].endswith(".css"):
+            filename = '../pages%s' % parts[1]
+            if "//" not in parts[1] and "~" not in parts[1] and ".." not in parts[1]:
+                try:
+                    pagetoserve = open(filename, "r").read()
+                    transmit(STATUS_OK, sock)
+                    transmit(pagetoserve, sock)
+                except FileNotFoundError:
+                    pagetoserve = STATUS_NOT_FOUND
+                    transmit(pagetoserve, sock)
+                
+            else:
+                transmit(STATUS_FORBIDDEN, sock)
+                    #transmit("\nI don't handle this request: {}\n".format(request), sock)
+        else:
+            transmit(STATUS_FORBIDDEN, sock)
     else:
-        log.info("Unhandled request: {}".format(request))
+            # log.info("Unhandled request: {}".format(request))
         transmit(STATUS_NOT_IMPLEMENTED, sock)
-        transmit("\nI don't handle this request: {}\n".format(request), sock)
+                #transmit("\nI don't handle this request: {}\n".format(request), sock)
+
 
     sock.shutdown(socket.SHUT_RDWR)
     sock.close()
