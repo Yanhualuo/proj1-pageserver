@@ -83,7 +83,7 @@ def respond(sock):
     parts = request.split()
     if len(parts) > 1 and parts[0] == "GET":
         if parts[1].endswith(".html") or parts[1].endswith(".css"):
-            filename = '../pages%s' % parts[1]
+            filename = './pages%s' % parts[1]
             if "//" not in parts[1] and "~" not in parts[1] and ".." not in parts[1]:
                 try:
                     pagetoserve = open(filename, "r").read()
